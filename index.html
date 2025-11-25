@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Smart Hydration & Nutrition Advisor</title>
+
+<style>
+    body {
+        margin: 0;
+        font-family: Arial, sans-serif;
+        background: linear-gradient(135deg, #4b68ff, #811afe);
+        min-height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 20px;
+        color: #ffffff;
+    }
+
+    .card {
+        background: rgba(255, 255, 255, 0.15);
+        backdrop-filter: blur(15px);
+        padding: 35px;
+        border-radius: 14px;
+        width: 100%;
+        max-width: 650px;
+        box-shadow: 0 8px 20px rgba(2, 230, 247, 0.2);
+    }
+
+    h1 {
+        text-align: center;
+        margin-bottom: 25px;
+        font-size: 2.2rem;
+    }
+
+    label {
+        font-size: 1rem;
+        font-weight: bold;
+        margin-top: 15px;
+        display: block;
+    }
+
+    input, select, textarea {
+        width: 100%;
+        padding: 12px;
+        margin-top: 6px;
+        border-radius: 6px;
+        border: none;
+        outline: none;
+        font-size: 1rem;
+        background: rgba(255,255,255,0.8);
+    }
+
+    button {
+        width: 100%;
+        padding: 14px;
+        margin-top: 20px;
+        border: none;
+        border-radius: 8px;
+        background: #050505;
+        color: #fff;
+        font-size: 1.1rem;
+        cursor: pointer;
+        transition: 0.3s;
+    }
+
+    button:hover {
+        background: #000;
+    }
+
+    .loader {
+        border: 5px solid rgba(255,255,255,0.2);
+        border-top: 5px solid #fff;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        animation: spin 1s linear infinite;
+        margin: 20px auto;
+        display: none;
+    }
+
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+
+    .results {
+        margin-top: 25px;
+        display: none;
+        animation: fadeIn 0.5s ease-in-out;
+    }
+
+    @keyframes fadeIn {
+        0% { opacity: 0; }
+        100% { opacity: 1; }
+    }
+
+    .water, .meal, .reminder {
+        border-radius: 10px;
+        padding: 15px 20px;
+        margin-bottom: 15px;
+        color: #fff;
+    }
+
+    .water { background: rgba(255,255,255,0.2); }
+    .meal { background: rgba(0, 255, 180, 0.25); }
+    .reminder { background: rgba(255, 150, 0, 0.25); }
+
+    ul { padding-left: 20px; }
+</style>
+
+</head>
+<body>
+
+<div class="card">
+    <h1>Smart Hydration & Nutrition Advisor</h1>
+
+    <label>Age</label>
+    <input id="age" type="number" placeholder="Enter your age">
+
+    <label>Weight (kg)</label>
+    <input id="weight" type="number" placeholder="Enter your weight">
+
+    <label>Gender</label>
+    <select id="gender">
+        <option value="">Select gender...</option>
+        <option value="male">Male</option>
+        <option value="female">Female</option>
+        <option value="other">Other</option>
+    </select>
+
+    <label>Activity Level</label>
+    <select id="activity">
+        <option value="">Select activity level...</option>
+        <option value="sedentary">Sedentary</option>
+        <option value="moderate">Moderate</option>
+        <option value="active">Active</option>
+    </select>
+
+    <label>Health Condition</label>
+    <select id="disease">
+        <option value="none">None</option>
+        <option value="diabetes">Diabetes</option>
+        <option value="bp">High Blood Pressure</option>
+        <option value="thyroid">Thyroid</option>
+        <option value="pcos">PCOS</option>
+        <option value="heart">Heart Condition</option>
+        <option value="anemia">Anemia</option>
+    </select>
+
+    <label>Dietary Preferences</label>
+    <textarea id="diet" placeholder="e.g. Pakistani food, low sugar, high protein"></textarea>
+
+    <button onclick="calculatePlan()">Calculate My Plan</button>
+
+    <div class="loader" id="loader"></div>
+
+    <div class="results" id="results"></div>
+</div>
+
+<script>
+async function calculatePlan() {
+    const age = document.getElementById('age').value;
+    const weight = document.getElementById('weight').value;
+    const gender = document.getElementById('gender').value;
+    const activity = document.getElementById('activity').value;
+    const disease = document.getElementById('disease').value;
+    const diet = document.getElementById('diet').value;
+
+    const results = document.getElementById('results');
+    const loader = document.getElementById('loader');
+
+    loader.style.display = 'block';
+    results.style.display = 'none';
+    results.innerHTML = '';
+
+    try {
+        const response = await fetch("http://127.0.0.1:8000/calculate", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                age: Number(age),
+                weight: Number(weight),
+                gender: gender,
+                activity_level: activity,
+                disease: disease,
+                dietary_preferences: diet
+            })
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.detail || "An error occurred.");
+        }
+
+        const data = await response.json();
+        loader.style.display = 'none';
+        results.style.display = 'block';
+
+        results.innerHTML = `
+            <div class="water"><h3>Daily Water Intake:</h3><p>${data.daily_water_ml.toFixed(2)} ml</p></div>
+
+            <div class="meal"><h3>Recommended Meals:</h3>
+                <ul>${data.recommended_meals.map(m => `<li>${m}</li>`).join("")}</ul>
+            </div>
+
+            <div class="reminder"><h3>Reminders:</h3>
+                <ul>${data.reminders.map(r => `<li>${r}</li>`).join("")}</ul>
+            </div>
+        `;
+    } catch (err) {
+        loader.style.display = 'none';
+        results.style.display = 'block';
+        results.innerHTML = `<p style="color:#ff6b6b;">Error: ${err.message}</p>`;
+        console.log(err);
+    }
+}
+</script>
+
+</body>
+</html>
