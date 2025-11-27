@@ -1,9 +1,19 @@
-<!DOCTYPE html>
-<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Smart Hydration & Nutrition Advisor</title>
+
+<!-- SEO + LINKEDIN PREVIEW -->
+<meta property="og:title" content="Smart Hydration & Nutrition Advisor">
+<meta property="og:description" content="AI-powered hydration and meal recommendations using FastAPI and Gemini.">
+<meta property="og:image" content="https://smart-hydration-nutrition-advisor.vercel.app/preview.png">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://smart-hydration-nutrition-advisor.vercel.app/">
+
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Smart Hydration & Nutrition Advisor">
+<meta name="twitter:description" content="AI-based hydration and nutrition planner built with FastAPI and Gemini.">
+<meta name="twitter:image" content="https://smart-hydration-nutrition-advisor.vercel.app/preview.png">
 
 <style>
     body {
@@ -111,112 +121,3 @@
 </style>
 
 </head>
-<body>
-
-<div class="card">
-    <h1>Smart Hydration & Nutrition Advisor</h1>
-
-    <label>Age</label>
-    <input id="age" type="number" placeholder="Enter your age">
-
-    <label>Weight (kg)</label>
-    <input id="weight" type="number" placeholder="Enter your weight">
-
-    <label>Gender</label>
-    <select id="gender">
-        <option value="">Select gender...</option>
-        <option value="male">Male</option>
-        <option value="female">Female</option>
-        <option value="other">Other</option>
-    </select>
-
-    <label>Activity Level</label>
-    <select id="activity">
-        <option value="">Select activity level...</option>
-        <option value="sedentary">Sedentary</option>
-        <option value="moderate">Moderate</option>
-        <option value="active">Active</option>
-    </select>
-
-    <label>Health Condition</label>
-    <select id="disease">
-        <option value="none">None</option>
-        <option value="diabetes">Diabetes</option>
-        <option value="bp">High Blood Pressure</option>
-        <option value="thyroid">Thyroid</option>
-        <option value="pcos">PCOS</option>
-        <option value="heart">Heart Condition</option>
-        <option value="anemia">Anemia</option>
-    </select>
-
-    <label>Dietary Preferences</label>
-    <textarea id="diet" placeholder="e.g. Pakistani food, low sugar, high protein"></textarea>
-
-    <button onclick="calculatePlan()">Calculate My Plan</button>
-
-    <div class="loader" id="loader"></div>
-
-    <div class="results" id="results"></div>
-</div>
-
-<script>
-async function calculatePlan() {
-    const age = document.getElementById('age').value;
-    const weight = document.getElementById('weight').value;
-    const gender = document.getElementById('gender').value;
-    const activity = document.getElementById('activity').value;
-    const disease = document.getElementById('disease').value;
-    const diet = document.getElementById('diet').value;
-
-    const results = document.getElementById('results');
-    const loader = document.getElementById('loader');
-
-    loader.style.display = 'block';
-    results.style.display = 'none';
-    results.innerHTML = '';
-
-    try {
-        const response = await fetch("http://127.0.0.1:8000/calculate", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                age: Number(age),
-                weight: Number(weight),
-                gender: gender,
-                activity_level: activity,
-                disease: disease,
-                dietary_preferences: diet
-            })
-        });
-
-        if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.detail || "An error occurred.");
-        }
-
-        const data = await response.json();
-        loader.style.display = 'none';
-        results.style.display = 'block';
-
-        results.innerHTML = `
-            <div class="water"><h3>Daily Water Intake:</h3><p>${data.daily_water_ml.toFixed(2)} ml</p></div>
-
-            <div class="meal"><h3>Recommended Meals:</h3>
-                <ul>${data.recommended_meals.map(m => `<li>${m}</li>`).join("")}</ul>
-            </div>
-
-            <div class="reminder"><h3>Reminders:</h3>
-                <ul>${data.reminders.map(r => `<li>${r}</li>`).join("")}</ul>
-            </div>
-        `;
-    } catch (err) {
-        loader.style.display = 'none';
-        results.style.display = 'block';
-        results.innerHTML = `<p style="color:#ff6b6b;">Error: ${err.message}</p>`;
-        console.log(err);
-    }
-}
-</script>
-
-</body>
-</html>
